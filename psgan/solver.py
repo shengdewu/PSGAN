@@ -20,7 +20,6 @@ from . import net
 from .preprocess import PreProcess
 from concern.track import Track
 
-
 pwd = osp.split(osp.realpath(__file__))[0]
 
 

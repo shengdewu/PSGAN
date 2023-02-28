@@ -1,4 +1,3 @@
-
 import functools
 import inspect
 import logging
@@ -13,7 +12,6 @@ here to enable yaml and command-line configuration.
 """
 
 _C = CfgNode()
-
 
 # Paths for logging and saving
 _C.LOG = CfgNode()
@@ -66,7 +64,6 @@ _C.MODEL.D_REPEAT_NUM = 3
 _C.MODEL.NORM = "SN"
 _C.MODEL.WEIGHTS = "assets/models"
 
-
 # Preprocessing
 _C.PREPROCESS = CfgNode()
 _C.PREPROCESS.UP_RATIO = 0.6 / 0.85  # delta_size / face_size
@@ -81,5 +78,5 @@ _C.POSTPROCESS = CfgNode()
 _C.POSTPROCESS.WILL_DENOISE = False
 
 
-def get_config()->CfgNode:
+def get_config() -> CfgNode:
     return _C

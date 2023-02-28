@@ -11,6 +11,7 @@ class Inference:
     It takes two image `source` and `reference` in,
     and transfers the makeup of reference to source.
     """
+
     def __init__(self, config, device="cpu", model_path="assets/models/G.pth"):
         """
         Args:
@@ -45,7 +46,7 @@ class Inference:
 
         # TODO: Abridge the parameter list.
         result = self.solver.test(*source_input, *reference_input)
-        
+
         if with_face:
             return result, crop_face
         return result

@@ -13,10 +13,8 @@ from torchvision import transforms
 
 import faceutils as futils
 
-
 pwd = osp.split(osp.realpath(__file__))[0]
 sys.path.append(pwd + '/..')
-
 
 transform = transforms.Compose([
     transforms.ToTensor(),
