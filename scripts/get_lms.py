@@ -13,8 +13,8 @@ from concern.image import resize_by_max
 
 
 def main(
-    image_dir="/data/makeup-transfer/face-style-focused/images",
-    out_dir="/data/makeup-transfer/face-style-focused/landmarks"):
+        image_dir="/data/makeup-transfer/face-style-focused/images",
+        out_dir="/data/makeup-transfer/face-style-focused/landmarks"):
     image_dir = Path(image_dir)
     out_dir = Path(out_dir)
     valid_paths = defaultdict(list)
@@ -52,6 +52,7 @@ def main(
 
     for dir_name, pathlist in valid_paths.items():
         index_dir.joinpath(dir_name + ".txt").write_text("\n".join(pathlist))
+
 
 if __name__ == "__main__":
     fire.Fire(main)

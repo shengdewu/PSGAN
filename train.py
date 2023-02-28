@@ -17,6 +17,7 @@ def train_net(config):
     solver = Solver(config, data_loader=data_loader, device="cuda")
     solver.train()
 
+
 if __name__ == '__main__':
     args = setup_argparser().parse_args()
     config = setup_config(args)

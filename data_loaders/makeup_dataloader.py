@@ -1,8 +1,3 @@
-import os
-import torch
-import random
-import linecache
-
 from torch.utils.data import Dataset
 from PIL import Image
 from tools.data_reader import DataReader
@@ -19,7 +14,7 @@ class MakeupDataloader(Dataset):
         self.reader = DataReader(image_path)
 
     def __getitem__(self, index):
-        (image_s, mask_s, lm_s), (image_r, mask_r, lm_r) =\
+        (image_s, mask_s, lm_s), (image_r, mask_r, lm_r) = \
             self.reader.pick()
         lm_s = self.preprocess.relative2absolute(lm_s / image_s.size)
         lm_r = self.preprocess.relative2absolute(lm_r / image_r.size)
@@ -33,7 +28,6 @@ class MakeupDataloader(Dataset):
         mask_r, dist_r = self.preprocess.process(
             mask_r.unsqueeze(0), lm_r)
         return [image_s, mask_s, dist_s], [image_r, mask_r, dist_r]
-
 
     def __len__(self):
         return len(self.reader)

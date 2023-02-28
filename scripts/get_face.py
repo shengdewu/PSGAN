@@ -10,11 +10,13 @@ import pickle
 from config import config
 import dlib
 
-from multiprocessing import Pool 
+from multiprocessing import Pool
 from functools import partial
 
 import os.path as osp
+
 detector = dlib.get_frontal_face_detector()
+
 
 def fast_detect(image: Image) -> 'faces':
     # rescale image since detect face on smaller image is faster
@@ -62,16 +64,16 @@ def worker(image_path, out_dir):
 
 
 def main(
-    image_dir="/data/makeup-transfer/face-style/",
-    out_dir="/data/datasets/beauty/crop/makeup-transfer-oss/face-style-focused",
-    show=False):
+        image_dir="/data/makeup-transfer/face-style/",
+        out_dir="/data/datasets/beauty/crop/makeup-transfer-oss/face-style-focused",
+        show=False):
     """
     dirs can also be S3 path such as s3://a/bc/
     """
     image_dir = smart_path(image_dir)
     out_dir = smart_path(out_dir)
 
-    partial_worker = partial(worker, out_dir = out_dir)  # worker accept two parameters: image_path and out_dir
+    partial_worker = partial(worker, out_dir=out_dir)  # worker accept two parameters: image_path and out_dir
 
     # multiprocessing
     pool = Pool(8)
@@ -83,4 +85,3 @@ def main(
 
 if __name__ == "__main__":
     fire.Fire(main)
-

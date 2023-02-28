@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import copy
 
+
 def cal_hist(image):
     """
         cal cumulative hist for channel list
@@ -31,7 +32,7 @@ def cal_trans(ref, adj):
     table = list(range(0, 256))
     for i in list(range(1, 256)):
         for j in list(range(1, 256)):
-            if ref[i] >= adj[j - 1] and ref[i] <= adj[j]:
+            if adj[j - 1] <= ref[i] <= adj[j]:
                 table[i] = j
                 break
     table[255] = 255

@@ -7,6 +7,7 @@ import numpy as np
 import PIL
 from psgan.preprocess import PreProcess
 
+
 def ToTensor(pic):
     # handle PIL Image
     if pic.mode == 'I':
@@ -31,12 +32,13 @@ def ToTensor(pic):
     else:
         return img
 
+
 def get_loader(config, mode="train"):
     # return the DataLoader
     transform = transforms.Compose([
-    transforms.Resize(config.DATA.IMG_SIZE),
-    transforms.ToTensor(),
-    transforms.Normalize([0.5,0.5,0.5],[0.5,0.5,0.5])])
+        transforms.Resize(config.DATA.IMG_SIZE),
+        transforms.ToTensor(),
+        transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
     transform_mask = transforms.Compose([
         transforms.Resize(config.DATA.IMG_SIZE, interpolation=PIL.Image.NEAREST),
         ToTensor])
@@ -44,7 +46,7 @@ def get_loader(config, mode="train"):
     dataset = MakeupDataloader(
         config.DATA.PATH, transform=transform,
         transform_mask=transform_mask, preprocess=PreProcess(config))
-    #"""
+    # """
     dataloader = DataLoader(dataset=dataset,
                             batch_size=config.DATA.BATCH_SIZE,
                             shuffle=True, num_workers=config.DATA.NUM_WORKERS)

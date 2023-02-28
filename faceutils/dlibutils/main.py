@@ -25,10 +25,11 @@ def detect(image: Image) -> 'faces':
                 int(face.left() / actual_w * w + 0.5),
                 int(face.top() / actual_h * h + 0.5),
                 int(face.right() / actual_w * w + 0.5),
-                int(face.bottom() / actual_h * h  + 0.5)
+                int(face.bottom() / actual_h * h + 0.5)
             )
         )
     return faces
+
 
 def crop(image: Image, face, up_ratio, down_ratio, width_ratio) -> (Image, 'face'):
     width, height = image.size
@@ -44,7 +45,7 @@ def crop(image: Image, face, up_ratio, down_ratio, width_ratio) -> (Image, 'face
     img_bottom = int(min(height, face.bottom() + delta_down))
     image = image.crop((img_left, img_top, img_right, img_bottom))
     face = dlib.rectangle(face.left() - img_left, face.top() - img_top,
-                        face.right() - img_left, face.bottom() - img_top)
+                          face.right() - img_left, face.bottom() - img_top)
     face_expand = dlib.rectangle(img_left, img_top, img_right, img_bottom)
     center = face_expand.center()
     width, height = image.size
@@ -102,7 +103,7 @@ def crop_by_image_size(image: Image, face) -> (Image, 'face'):
         elif bottom > height:
             top, bottom = height - width, height
         image = image.crop((0, top, width, bottom))
-        face = dlib.rectangle(face.left(), face.top() - top, 
+        face = dlib.rectangle(face.left(), face.top() - top,
                               face.right(), face.bottom() - top)
     return image, face
 
@@ -111,8 +112,9 @@ def landmarks(image: Image, face):
     shape = predictor(np.asarray(image), face).parts()
     return np.array([[p.y, p.x] for p in shape])
 
+
 def crop_from_array(image: np.array, face) -> (np.array, 'face'):
-    ratio = 0.20 / 0.85 # delta_size / face_size
+    ratio = 0.20 / 0.85  # delta_size / face_size
     height, width = image.shape[:2]
     face_height = face.height()
     face_width = face.width()
@@ -125,7 +127,7 @@ def crop_from_array(image: np.array, face) -> (np.array, 'face'):
     img_bottom = int(min(height, face.bottom() + delta_height))
     image = image[img_top:img_bottom, img_left:img_right]
     face = dlib.rectangle(face.left() - img_left, face.top() - img_top,
-                        face.right() - img_left, face.bottom() - img_top)
+                          face.right() - img_left, face.bottom() - img_top)
     center = face.center()
     height, width = image.shape[:2]
     if width > height:
@@ -149,4 +151,3 @@ def crop_from_array(image: np.array, face) -> (np.array, 'face'):
         face = dlib.rectangle(face.left(), face.top() - top,
                               face.right(), face.bottom() - top)
     return image, face
-

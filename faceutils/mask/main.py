@@ -26,7 +26,6 @@ class FaceParser:
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
         ])
 
-
     def parse(self, image: Image):
         assert image.shape[:2] == (512, 512)
         with torch.no_grad():
@@ -36,4 +35,3 @@ class FaceParser:
             parsing = out.squeeze(0).argmax(0)
         parsing = torch.nn.functional.embedding(parsing, self.dic)
         return parsing.float()
-

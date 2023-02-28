@@ -2,6 +2,7 @@ import argparse
 
 from psgan import get_config
 
+
 def setup_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config_file", default="configs/base.yaml", metavar="FILE", help="path to config file")
@@ -12,6 +13,7 @@ def setup_argparser():
         nargs=argparse.REMAINDER,
     )
     return parser
+
 
 def setup_config(args):
     config = get_config()

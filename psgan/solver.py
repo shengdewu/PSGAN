@@ -2,8 +2,6 @@
 # -*- encoding: utf-8 -*-
 import os
 import os.path as osp
-pwd = osp.split(osp.realpath(__file__))[0]
-
 import time
 import datetime
 
@@ -13,7 +11,7 @@ from torchvision.transforms import ToPILImage
 from torchvision.utils import save_image
 import torch.nn.init as init
 from torch.autograd import Variable
-from torchgpipe import GPipe
+# from torchgpipe import GPipe
 
 from ops.loss_added import GANLoss
 from ops.histogram_loss import HistogramLoss
@@ -21,6 +19,9 @@ import tools.plot as plot_fig
 from . import net
 from .preprocess import PreProcess
 from concern.track import Track
+
+
+pwd = osp.split(osp.realpath(__file__))[0]
 
 
 class Solver(Track):
@@ -52,14 +53,13 @@ class Solver(Track):
         self.beta1 = config.TRAINING.BETA1
         self.beta2 = config.TRAINING.BETA2
 
-        self.lambda_idt      = config.LOSS.LAMBDA_IDT
-        self.lambda_A        = config.LOSS.LAMBDA_A
-        self.lambda_B        = config.LOSS.LAMBDA_B
-        self.lambda_his_lip  = config.LOSS.LAMBDA_HIS_LIP
+        self.lambda_idt = config.LOSS.LAMBDA_IDT
+        self.lambda_A = config.LOSS.LAMBDA_A
+        self.lambda_B = config.LOSS.LAMBDA_B
+        self.lambda_his_lip = config.LOSS.LAMBDA_HIS_LIP
         self.lambda_his_skin = config.LOSS.LAMBDA_HIS_SKIN
-        self.lambda_his_eye  = config.LOSS.LAMBDA_HIS_EYE
-        self.lambda_vgg      = config.LOSS.LAMBDA_VGG
-
+        self.lambda_his_eye = config.LOSS.LAMBDA_HIS_EYE
+        self.lambda_vgg = config.LOSS.LAMBDA_VGG
 
         # Hyper-parameteres
         self.d_conv_dim = config.MODEL.D_CONV_DIM
@@ -155,7 +155,7 @@ class Solver(Track):
             self.D_B.load_state_dict(torch.load(D_B_path))
             print('loaded trained discriminator B {}..!'.format(D_B_path))
 
-    def generate(self, org_A, ref_B, lms_A=None, lms_B=None, mask_A=None, mask_B=None, 
+    def generate(self, org_A, ref_B, lms_A=None, lms_B=None, mask_A=None, mask_B=None,
                  diff_A=None, diff_B=None, gamma=None, beta=None, ret=False):
         """org_A is content, ref_B is style"""
         res = self.G(org_A, ref_B, mask_A, mask_B, diff_A, diff_B, gamma, beta, ret)
@@ -167,9 +167,9 @@ class Solver(Track):
     def test(self, real_A, mask_A, diff_A, real_B, mask_B, diff_B):
         cur_prama = None
         with torch.no_grad():
-            cur_prama = self.generate(real_A, real_B, None, None, mask_A, mask_B, 
+            cur_prama = self.generate(real_A, real_B, None, None, mask_A, mask_B,
                                       diff_A, diff_B, ret=True)
-            fake_A = self.generate(real_A, real_B, None, None, mask_A, mask_B, 
+            fake_A = self.generate(real_A, real_B, None, None, mask_A, mask_B,
                                    diff_A, diff_B, gamma=cur_prama[0], beta=cur_prama[1])
         fake_A = fake_A.squeeze(0)
 
@@ -191,7 +191,7 @@ class Solver(Track):
             for self.i, (source_input, reference_input) in enumerate(self.data_loader_train):
                 # image, mask, dist
                 image_s, image_r = source_input[0].to(self.device), reference_input[0].to(self.device)
-                mask_s, mask_r = source_input[1].to(self.device), reference_input[1].to(self.device) 
+                mask_s, mask_r = source_input[1].to(self.device), reference_input[1].to(self.device)
                 dist_s, dist_r = source_input[2].to(self.device), reference_input[2].to(self.device)
                 self.track("data")
 
@@ -208,7 +208,7 @@ class Solver(Track):
                 fake_A = Variable(fake_A.data).detach()
                 out = self.D_A(fake_A)
                 self.track("D_A_2")
-                d_loss_fake =  self.criterionGAN(out, False)
+                d_loss_fake = self.criterionGAN(out, False)
                 self.track("D_A_loss_2")
 
                 # Backward + Optimize
@@ -231,7 +231,7 @@ class Solver(Track):
                 self.track("G-2")
                 fake_B = Variable(fake_B.data).detach()
                 out = self.D_B(fake_B)
-                d_loss_fake =  self.criterionGAN(out, False)
+                d_loss_fake = self.criterionGAN(out, False)
 
                 # Backward + Optimize
                 d_loss = (d_loss_real.mean() + d_loss_fake.mean()) * 0.5
@@ -243,12 +243,12 @@ class Solver(Track):
                 self.loss['D-B-loss_real'] = d_loss_real.mean().item()
 
                 # self.track("Discriminator backward")
-               
+
                 # ================== Train G ================== #
                 if (self.i + 1) % self.g_step == 0:
                     # identity loss
                     assert self.lambda_idt > 0
-                    
+
                     # G should be identity if ref_B or org_A is fed
                     idt_A = self.G(image_s, image_s, mask_s, mask_s, dist_s, dist_s)
                     idt_B = self.G(image_r, image_r, mask_r, mask_r, dist_r, dist_r)
@@ -349,16 +349,15 @@ class Solver(Track):
 
                     self.loss['G-A-loss-his'] = g_A_loss_his.mean().item()
 
-
                 # Print out log info
                 if (self.i + 1) % self.log_step == 0:
                     self.log_terminal()
 
-                #plot the figures
+                # plot the figures
                 for key_now in self.loss.keys():
                     plot_fig.plot(key_now, self.loss[key_now])
 
-                #save the images
+                # save the images
                 if (self.i) % self.vis_step == 0:
                     print("Saving middle output...")
                     self.vis_train([image_s, image_r, fake_A, rec_A, mask_s[:, :, 0], mask_r[:, :, 0]])
@@ -373,7 +372,7 @@ class Solver(Track):
                 plot_fig.tick()
 
             # Decay learning rate
-            if (self.e+1) > (self.num_epochs - self.num_epochs_decay):
+            if (self.e + 1) > (self.num_epochs - self.num_epochs_decay):
                 g_lr -= (self.g_lr / float(self.num_epochs_decay))
                 d_lr -= (self.d_lr / float(self.num_epochs_decay))
                 self.update_lr(g_lr, d_lr)
@@ -418,7 +417,7 @@ class Solver(Track):
         elapsed = str(datetime.timedelta(seconds=elapsed))
 
         log = "Elapsed [{}], Epoch [{}/{}], Iter [{}/{}]".format(
-            elapsed, self.e+1, self.num_epochs, self.i+1, self.iters_per_epoch)
+            elapsed, self.e + 1, self.num_epochs, self.i + 1, self.iters_per_epoch)
 
         for tag, value in self.loss.items():
             log += ", {}: {:.4f}".format(tag, value)

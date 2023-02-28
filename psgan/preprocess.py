@@ -1,10 +1,7 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
 import os.path as osp
-pwd = osp.split(osp.realpath(__file__))[0]
 import sys
-sys.path.append(pwd + '/..')
-
 import cv2
 import numpy as np
 from PIL import Image
@@ -16,9 +13,14 @@ from torchvision import transforms
 
 import faceutils as futils
 
+
+pwd = osp.split(osp.realpath(__file__))[0]
+sys.path.append(pwd + '/..')
+
+
 transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize([0.5,0.5,0.5],[0.5,0.5,0.5])])
+    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
 
 
 def ToTensor(pic):
@@ -54,9 +56,9 @@ def to_var(x, requires_grad=True):
 
 
 def copy_area(tar, src, lms):
-    rect = [int(min(lms[:, 1])) - PreProcess.eye_margin, 
-            int(min(lms[:, 0])) - PreProcess.eye_margin, 
-            int(max(lms[:, 1])) + PreProcess.eye_margin + 1, 
+    rect = [int(min(lms[:, 1])) - PreProcess.eye_margin,
+            int(min(lms[:, 0])) - PreProcess.eye_margin,
+            int(max(lms[:, 1])) + PreProcess.eye_margin + 1,
             int(max(lms[:, 0])) + PreProcess.eye_margin + 1]
     tar[:, :, rect[1]:rect[3], rect[0]:rect[2]] = \
         src[:, :, rect[1]:rect[3], rect[0]:rect[2]]
@@ -69,7 +71,7 @@ class PreProcess:
 
     def __init__(self, config, device="cpu", need_parser=True):
         self.device = device
-        self.img_size    = config.DATA.IMG_SIZE
+        self.img_size = config.DATA.IMG_SIZE
 
         xs, ys = np.meshgrid(
             np.linspace(
@@ -87,11 +89,11 @@ class PreProcess:
         self.fix = torch.Tensor(fix).to(self.device)
         if need_parser:
             self.face_parse = futils.mask.FaceParser(device=device)
-        self.up_ratio    = config.PREPROCESS.UP_RATIO
-        self.down_ratio  = config.PREPROCESS.DOWN_RATIO
+        self.up_ratio = config.PREPROCESS.UP_RATIO
+        self.down_ratio = config.PREPROCESS.DOWN_RATIO
         self.width_ratio = config.PREPROCESS.WIDTH_RATIO
-        self.lip_class   = config.PREPROCESS.LIP_CLASS
-        self.face_class  = config.PREPROCESS.FACE_CLASS
+        self.lip_class = config.PREPROCESS.LIP_CLASS
+        self.face_class = config.PREPROCESS.FACE_CLASS
 
     def relative2absolute(self, lms):
         return lms * self.img_size
@@ -99,12 +101,12 @@ class PreProcess:
     def process(self, mask, lms, device="cpu"):
         diff = to_var(
             (self.fix.double() - torch.tensor(lms.transpose((1, 0)
-                ).reshape(-1, 1, 1)).to(self.device)
-            ).unsqueeze(0), requires_grad=False).to(self.device)
+                                                            ).reshape(-1, 1, 1)).to(self.device)
+             ).unsqueeze(0), requires_grad=False).to(self.device)
 
         lms_eye_left = lms[42:48]
         lms_eye_right = lms[36:42]
-        lms = lms.transpose((1, 0)).reshape(-1, 1, 1)   # transpose to (y-x)
+        lms = lms.transpose((1, 0)).reshape(-1, 1, 1)  # transpose to (y-x)
         # lms = np.tile(lms, (1, 256, 256))  # (136, h, w)
         diff = to_var((self.fix.double() - torch.tensor(lms).to(self.device)).unsqueeze(0), requires_grad=False).to(self.device)
 
@@ -117,10 +119,10 @@ class PreProcess:
         mask_eyes = to_var(mask_eyes, requires_grad=False).to(device)
 
         mask_list = [mask_lip, mask_face, mask_eyes]
-        mask_aug = torch.cat(mask_list, 0)      # (3, 1, h, w)
+        mask_aug = torch.cat(mask_list, 0)  # (3, 1, h, w)
         mask_re = F.interpolate(mask_aug, size=self.diff_size).repeat(1, diff.shape[1], 1, 1)  # (3, 136, 64, 64)
         diff_re = F.interpolate(diff, size=self.diff_size).repeat(3, 1, 1, 1)  # (3, 136, 64, 64)
-        diff_re = diff_re * mask_re             # (3, 136, 32, 32)
+        diff_re = diff_re * mask_re  # (3, 136, 32, 32)
         norm = torch.norm(diff_re, dim=1, keepdim=True).repeat(1, diff_re.shape[1], 1, 1)
         norm = torch.where(norm == 0, torch.tensor(1e10, device=device), norm)
         diff_re /= norm

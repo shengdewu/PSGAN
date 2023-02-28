@@ -14,9 +14,9 @@ import cv2
 
 
 def main(
-    image_dir="/data/makeup-transfer/face-style-focused/images",
-    out_dir="/data/makeup-transfer/face-style-focused/masks",
-    show=False):
+        image_dir="/data/makeup-transfer/face-style-focused/images",
+        out_dir="/data/makeup-transfer/face-style-focused/masks",
+        show=False):
     """
     dirs can also be S3 path such as s3://a/bc/
     """
@@ -56,4 +56,3 @@ def main(
 
 if __name__ == "__main__":
     fire.Fire(main)
-

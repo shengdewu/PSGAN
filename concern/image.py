@@ -12,6 +12,7 @@ def load_image(path):
         img = img[..., ::-1]
     return img
 
+
 def resize_by_max(image, max_side=512, force=False):
     h, w = image.shape[:2]
     if max(h, w) < max_side and not force:
@@ -21,6 +22,7 @@ def resize_by_max(image, max_side=512, force=False):
     w = int(w / ratio + 0.5)
     h = int(h / ratio + 0.5)
     return cv2.resize(image, (w, h))
+
 
 def image2buffer(image):
     is_success, buffer = cv2.imencode(".jpg", image)
