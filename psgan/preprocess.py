@@ -10,7 +10,6 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from torch.backends import cudnn
 from torchvision import transforms
-
 import faceutils as futils
 
 pwd = osp.split(osp.realpath(__file__))[0]

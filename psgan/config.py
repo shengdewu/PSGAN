@@ -77,6 +77,8 @@ _C.PREPROCESS.LANDMARK_POINTS = 68
 _C.POSTPROCESS = CfgNode()
 _C.POSTPROCESS.WILL_DENOISE = False
 
+_C.DEVICE = 'cpu'
+
 
 def get_config() -> CfgNode:
     return _C

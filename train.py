@@ -14,7 +14,7 @@ def train_net(config):
     cudnn.benchmark = True
 
     data_loader = get_loader(config)
-    solver = Solver(config, data_loader=data_loader, device="cuda")
+    solver = Solver(config, data_loader=data_loader)
     solver.train()
 
 

@@ -24,7 +24,8 @@ pwd = osp.split(osp.realpath(__file__))[0]
 
 
 class Solver(Track):
-    def __init__(self, config, device="cpu", data_loader=None, inference=False):
+    def __init__(self, config, data_loader=None, inference=False):
+        device = config.DEVICE
         self.G = net.Generator()
         if inference:
             self.G.load_state_dict(torch.load(inference, map_location=torch.device(device)))
