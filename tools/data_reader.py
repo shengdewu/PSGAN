@@ -2,7 +2,6 @@ from pathlib import Path
 import pickle
 
 from PIL import Image
-import cv2
 import numpy as np
 
 
@@ -18,8 +17,8 @@ class DataReader:
         self.image_dir = self.data_dir.joinpath(self.image_dir_name)
         self.seg_dir = self.data_dir.joinpath(self.seg_dir_name)
         self.lms_dir = self.data_dir.joinpath(self.landmark_dir_name)
-        self.makeup_names = [name.strip() for name in self.data_dir.joinpath(self.makeup).open("rt")]
-        self.non_makeup_names = [name.strip() for name in self.data_dir.joinpath(self.non_makeup).open("rt")]
+        self.makeup_names = [name.strip() for name in self.data_dir.joinpath(self.makeup).open("rt") if self.lms_dir.joinpath(name.strip()).exists() and self.seg_dir.joinpath(name.strip()).exists()]
+        self.non_makeup_names = [name.strip() for name in self.data_dir.joinpath(self.non_makeup).open("rt") if self.lms_dir.joinpath(name.strip()).exists() and self.seg_dir.joinpath(name.strip()).exists()]
 
         self.random = None
 

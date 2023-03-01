@@ -63,6 +63,7 @@ _C.MODEL.G_REPEAT_NUM = 6
 _C.MODEL.D_REPEAT_NUM = 3
 _C.MODEL.NORM = "SN"
 _C.MODEL.WEIGHTS = "assets/models"
+_C.MODEL.VGG_WEIGHTS = 'assets/models'
 
 # Preprocessing
 _C.PREPROCESS = CfgNode()

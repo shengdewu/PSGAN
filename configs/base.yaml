@@ -1,3 +1,20 @@
+LOG:
+    LOG_PATH: /mnt/sda1/train.output/makeup.output/psgan/
+    SNAPSHOT_PATH: /mnt/sda1/train.output/makeup.output/psgan/
+    VIS_PATH: /mnt/sda1/train.output/makeup.output/psgan/
+    SNAPSHOT_STEP: 1024
+    LOG_STEP: 1000
+    VIS_STEP: 2700
+
 DATA:
     BATCH_SIZE: 1
     IMG_SIZE: 256
+    PATH: /home/shengdewu/data/makeup.data/MT-Dataset
+    NUM_WORKERS: 4
+
+MODEL:
+    WEIGHTS: /mnt/sda1/train.output/makeup.output/psgan/
+    VGG_WEIGHTS: /mnt/sda1/workspace/open_source/PSGAN/vgg16-397923af.pth
+
+DEVICE: cpu
+

@@ -34,6 +34,7 @@ class Solver(Track):
 
         self.start_time = time.time()
         self.checkpoint = config.MODEL.WEIGHTS
+        self.vgg_checkpoint = config.MODEL.VGG_WEIGHTS
         self.log_path = config.LOG.LOG_PATH
         self.result_path = os.path.join(self.log_path, config.LOG.VIS_PATH)
         self.snapshot_path = os.path.join(self.log_path, config.LOG.SNAPSHOT_PATH)
@@ -105,7 +106,8 @@ class Solver(Track):
         self.criterionL2 = torch.nn.MSELoss()
         self.criterionGAN = GANLoss(use_lsgan=True, tensor=torch.cuda.FloatTensor)
 
-        self.vgg = net.vgg16(pretrained=True)
+        self.vgg = net.vgg16(pretrained=False)
+        self.vgg.load_state_dict(torch.load(self.vgg_checkpoint, map_location='cpu'))
         self.criterionHis = HistogramLoss()
 
         # Optimizers
@@ -350,7 +352,7 @@ class Solver(Track):
                     self.loss['G-A-loss-his'] = g_A_loss_his.mean().item()
 
                 # Print out log info
-                if (self.i + 1) % self.log_step == 0:
+                if self.i % self.log_step == 0:
                     self.log_terminal()
 
                 # plot the figures
@@ -358,15 +360,15 @@ class Solver(Track):
                     plot_fig.plot(key_now, self.loss[key_now])
 
                 # save the images
-                if (self.i) % self.vis_step == 0:
+                if self.i % self.vis_step == 0:
                     print("Saving middle output...")
                     self.vis_train([image_s, image_r, fake_A, rec_A, mask_s[:, :, 0], mask_r[:, :, 0]])
 
                 # Save model checkpoints
-                if (self.i) % self.snapshot_step == 0:
+                if self.i % self.snapshot_step == 0:
                     self.save_models()
 
-                if (self.i % 100 == 99):
+                if self.i % 100 == 99:
                     plot_fig.flush(self.log_path)
 
                 plot_fig.tick()
