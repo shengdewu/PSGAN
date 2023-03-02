@@ -54,11 +54,22 @@ def main(save_path='transferred_image.png'):
         reference = Image.open(reference_path).convert("RGB")
 
         # Transfer the psgan from reference to source.
-        image, face = inference.transfer(source, reference, with_face=True)
+        image, face, r_face = inference.transfer(source, reference, with_face=True)
         source_crop = source.crop(
             (face.left(), face.top(), face.right(), face.bottom()))
         image = postprocess(source_crop, image)
-        image.save(save_path)
+
+        reference_crop = reference.crop(
+            (r_face.left(), r_face.top(), r_face.right(), r_face.bottom()))
+        h, w = source_crop.height, source_crop.width
+        small_reference = reference_crop.resize((w, h), Image.BILINEAR)
+
+        past_img = Image.new('RGB', size=(w * 3, h))
+        past_img.paste(source_crop, (0, 0))
+        past_img.paste(image, (w, 0))
+        past_img.paste(small_reference, (w*2, 0))
+
+        past_img.save(save_path)
 
         if args.speed:
             import time

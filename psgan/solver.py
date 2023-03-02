@@ -48,6 +48,7 @@ class Solver(Track):
 
         self.num_epochs = config.TRAINING.NUM_EPOCHS
         self.num_epochs_decay = config.TRAINING.NUM_EPOCHS_DECAY
+        self.num_start_epochs = config.TRAINING.NUM_START_EPOCHS
         self.g_lr = config.TRAINING.G_LR
         self.d_lr = config.TRAINING.D_LR
         self.g_step = config.TRAINING.G_STEP
@@ -157,6 +158,9 @@ class Solver(Track):
             self.D_B.load_state_dict(torch.load(D_B_path))
             print('loaded trained discriminator B {}..!'.format(D_B_path))
 
+        assert self.num_start_epochs > 0 and os.path.exists(G_path) and os.path.exists(D_A_path) and os.path.exists(D_B_path)
+        return
+
     def generate(self, org_A, ref_B, lms_A=None, lms_B=None, mask_A=None, mask_B=None,
                  diff_A=None, diff_B=None, gamma=None, beta=None, ret=False):
         """org_A is content, ref_B is style"""
@@ -187,7 +191,9 @@ class Solver(Track):
         # Start with trained model if exists
         g_lr = self.g_lr
         d_lr = self.d_lr
-        start = 0
+        start = self.num_start_epochs
+
+        print(f'start from epoch {start}')
 
         for self.e in range(start, self.num_epochs):
             for self.i, (source_input, reference_input) in enumerate(self.data_loader_train):

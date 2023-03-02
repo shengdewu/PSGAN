@@ -32,7 +32,7 @@ class Inference:
             Image: Transfered image.
         """
         source_input, face, crop_face = self.preprocess(source)
-        reference_input, _, _ = self.preprocess(reference)
+        reference_input, r_face, r_crop_face = self.preprocess(reference)
         if not (source_input and reference_input):
             if with_face:
                 return None, None
@@ -48,5 +48,5 @@ class Inference:
         result = self.solver.test(*source_input, *reference_input)
 
         if with_face:
-            return result, crop_face
+            return result, crop_face, r_crop_face
         return result
