@@ -5,6 +5,8 @@ from torch.autograd import Variable
 
 from ops.histogram_matching import histogram_matching
 
+# from torchvision.utils import save_image
+
 
 class HistogramLoss(nn.Module):
     def __init__(self):
@@ -22,13 +24,14 @@ class HistogramLoss(nn.Module):
         else:
             return Variable(x)
 
-    def forward(self, input_data, target_data, mask_src, mask_tar):
-        index_tmp = mask_src.unsqueeze(0).nonzero()
-        x_A_index = index_tmp[:, 2]
-        y_A_index = index_tmp[:, 3]
-        index_tmp = mask_tar.unsqueeze(0).nonzero()
-        x_B_index = index_tmp[:, 2]
-        y_B_index = index_tmp[:, 3]
+    def forward(self, input_data, target_data, mask_src, mask_tar, source_data=None):
+        assert mask_src.shape[0] == 1 and mask_src.shape[1] == 1
+        index_tmp = mask_src.squeeze(0).squeeze(0).nonzero() # [[h, w], .. [h, w]] n * 2
+        x_A_index = index_tmp[:, 1]
+        y_A_index = index_tmp[:, 0]
+        index_tmp = mask_tar.squeeze(0).squeeze(0).nonzero()
+        x_B_index = index_tmp[:, 1]
+        y_B_index = index_tmp[:, 0]
 
         input_data = (self.de_norm(input_data) * 255).squeeze()
         target_data = (self.de_norm(target_data) * 255).squeeze()
@@ -36,9 +39,23 @@ class HistogramLoss(nn.Module):
         mask_tar = mask_tar.expand(1, 3, mask_tar.size(2), mask_tar.size(2)).squeeze()
         input_masked = input_data * mask_src
         target_masked = target_data * mask_tar
-        input_match = histogram_matching(
-            input_masked, target_masked,
-            [x_A_index, y_A_index, x_B_index, y_B_index])
+
+        if source_data is not None:
+            source_data = (self.de_norm(source_data) * 255).squeeze()
+            source_masked = source_data * mask_src
+
+            input_match = histogram_matching(
+                source_masked, target_masked,
+                [y_A_index, x_A_index, y_B_index, x_B_index])
+
+            # save_image(torch.cat([source_data, source_masked, target_data, target_masked, input_data, input_masked, input_match], dim=-1), 'his_after.jpg', normalize=True)
+        else:
+            input_match = histogram_matching(
+                input_masked, target_masked,
+                [y_A_index, x_A_index, y_B_index, x_B_index])
+
+            # save_image(torch.cat([target_data, target_masked, input_data, input_masked, input_match], dim=-1), 'his_after.jpg', normalize=True)
+
         input_match = self.to_var(input_match, requires_grad=False)
         loss = F.l1_loss(input_masked, input_match)
         return loss

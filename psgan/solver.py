@@ -160,7 +160,6 @@ class Solver(Track):
             self.D_B.load_state_dict(torch.load(D_B_path))
             print('loaded trained discriminator B {}..!'.format(D_B_path))
 
-        assert self.num_start_epochs > 0 and os.path.exists(G_path) and os.path.exists(D_A_path) and os.path.exists(D_B_path)
         return
 
     def generate(self, org_A, ref_B, lms_A=None, lms_B=None, mask_A=None, mask_B=None,
@@ -286,28 +285,28 @@ class Solver(Track):
                     g_A_loss_his = 0
                     g_B_loss_his = 0
                     g_A_lip_loss_his = self.criterionHis(
-                        fake_A, image_r, mask_s[:, 0], mask_r[:, 0]
+                        fake_A, image_r, mask_s[:, 0], mask_r[:, 0], source_data=image_s
                     ) * self.lambda_his_lip
                     g_B_lip_loss_his = self.criterionHis(
-                        fake_B, image_s, mask_r[:, 0], mask_s[:, 0]
+                        fake_B, image_s, mask_r[:, 0], mask_s[:, 0], source_data=image_r
                     ) * self.lambda_his_lip
                     g_A_loss_his += g_A_lip_loss_his
                     g_B_loss_his += g_B_lip_loss_his
 
                     g_A_skin_loss_his = self.criterionHis(
-                        fake_A, image_r, mask_s[:, 1], mask_r[:, 1]
+                        fake_A, image_r, mask_s[:, 1], mask_r[:, 1], source_data=image_s
                     ) * self.lambda_his_skin
                     g_B_skin_loss_his = self.criterionHis(
-                        fake_B, image_s, mask_r[:, 1], mask_s[:, 1]
+                        fake_B, image_s, mask_r[:, 1], mask_s[:, 1], source_data=image_r
                     ) * self.lambda_his_skin
                     g_A_loss_his += g_A_skin_loss_his
                     g_B_loss_his += g_B_skin_loss_his
 
                     g_A_eye_loss_his = self.criterionHis(
-                        fake_A, image_r, mask_s[:, 2], mask_r[:, 2]
+                        fake_A, image_r, mask_s[:, 2], mask_r[:, 2], source_data=image_s
                     ) * self.lambda_his_eye
                     g_B_eye_loss_his = self.criterionHis(
-                        fake_B, image_s, mask_r[:, 2], mask_s[:, 2]
+                        fake_B, image_s, mask_r[:, 2], mask_s[:, 2], source_data=image_r
                     ) * self.lambda_his_eye
                     g_A_loss_his += g_A_eye_loss_his
                     g_B_loss_his += g_B_eye_loss_his
