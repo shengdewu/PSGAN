@@ -49,6 +49,8 @@ class Solver(Track):
         self.num_epochs = config.TRAINING.NUM_EPOCHS
         self.num_epochs_decay = config.TRAINING.NUM_EPOCHS_DECAY
         self.num_start_epochs = config.TRAINING.NUM_START_EPOCHS
+        self.lr_decay_rate = config.TRAINING.LR_DECAY_RATE
+        self.lr_steps = config.TRAINING.LR_STEPS
         self.g_lr = config.TRAINING.G_LR
         self.d_lr = config.TRAINING.D_LR
         self.g_step = config.TRAINING.G_STEP
@@ -144,16 +146,16 @@ class Solver(Track):
             self.D_B.cuda()
 
     def load_checkpoint(self):
-        G_path = os.path.join(self.checkpoint, 'G.pth')
+        G_path = os.path.join(self.checkpoint, f'{self.num_start_epochs}_G.pth')
         if os.path.exists(G_path):
             self.G.load_state_dict(torch.load(G_path))
             print('loaded trained generator {}..!'.format(G_path))
-        D_A_path = os.path.join(self.checkpoint, 'D_A.pth')
+        D_A_path = os.path.join(self.checkpoint, f'{self.num_start_epochs}_D_A.pth')
         if os.path.exists(D_A_path):
             self.D_A.load_state_dict(torch.load(D_A_path))
             print('loaded trained discriminator A {}..!'.format(D_A_path))
 
-        D_B_path = os.path.join(self.checkpoint, 'D_B.pth')
+        D_B_path = os.path.join(self.checkpoint, f'{self.num_start_epochs}_D_B.pth')
         if os.path.exists(D_B_path):
             self.D_B.load_state_dict(torch.load(D_B_path))
             print('loaded trained discriminator B {}..!'.format(D_B_path))
@@ -268,7 +270,7 @@ class Solver(Track):
                     # self.track("Identical")
 
                     # GAN loss D_A(G_A(A))
-                    # fake_A in class B, 
+                    # fake_A in class B,
                     fake_A = self.G(image_s, image_r, mask_s, mask_r, dist_s, dist_r)
                     pred_fake = self.D_A(fake_A)
                     g_A_loss_adv = self.criterionGAN(pred_fake, True)
@@ -380,11 +382,51 @@ class Solver(Track):
                 plot_fig.tick()
 
             # Decay learning rate
-            if (self.e + 1) > (self.num_epochs - self.num_epochs_decay):
-                g_lr -= (self.g_lr / float(self.num_epochs_decay))
-                d_lr -= (self.d_lr / float(self.num_epochs_decay))
-                self.update_lr(g_lr, d_lr)
-                print('Decay learning rate to g_lr: {}, d_lr:{}.'.format(g_lr, d_lr))
+            if self.lr_steps is None:
+                if (self.e + 1) > (self.num_epochs - self.num_epochs_decay):
+                    g_lr -= (self.g_lr / float(self.num_epochs_decay))
+                    d_lr -= (self.d_lr / float(self.num_epochs_decay))
+                    self.update_lr(g_lr, d_lr)
+                    print('Decay learning rate to g_lr: {}, d_lr:{}.'.format(g_lr, d_lr))
+            else:
+                self.lr_scheduler(self.e)
+        return
+
+    def lr_scheduler(self, epoch):
+        assert isinstance(self.lr_steps, list) or isinstance(self.lr_steps, tuple)
+        steps = [x for x in self.lr_steps if x < self.num_epochs]
+        steps.insert(0, 0)
+        g_lrs = [self.g_lr * self.lr_decay_rate ** i for i in range(len(steps))]
+        d_lrs = [self.d_lr * self.lr_decay_rate ** i for i in range(len(steps))]
+
+        steps.append(self.num_epochs)
+
+        lo = 0
+        hi = len(steps) - 1
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if steps[mid] > epoch:
+                hi = mid
+            else:
+                lo = mid + 1
+
+        g_lr_tmp = g_lrs[lo-1]
+        d_lr_tmp = d_lrs[lo-1]
+
+        g_lr = self.g_optimizer.param_groups[0]['lr']
+        if g_lr != g_lr_tmp:
+            for param_group in self.g_optimizer.param_groups:
+                param_group['lr'] = g_lr_tmp
+            print('{} Decay learning rate to g_lr: {}, g_lr_tmp:{}.'.format(epoch, g_lr, g_lr_tmp))
+
+        d_lr = self.d_A_optimizer.param_groups[0]['lr']
+        if d_lr != d_lr_tmp:
+            for param_group in self.d_A_optimizer.param_groups:
+                param_group['lr'] = d_lr_tmp
+            for param_group in self.d_B_optimizer.param_groups:
+                param_group['lr'] = d_lr_tmp
+            print('{} Decay learning rate to d_lr: {}, d_lr_tmp:{}.'.format(epoch, d_lr, d_lr_tmp))
+        return
 
     def update_lr(self, g_lr, d_lr):
         for param_group in self.g_optimizer.param_groups:
