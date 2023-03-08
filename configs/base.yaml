@@ -1,7 +1,7 @@
 LOG:
-    LOG_PATH: /mnt/sda1/train.output/makeup.output/psgan/
-    SNAPSHOT_PATH: /mnt/sda1/train.output/makeup.output/psgan/
-    VIS_PATH: /mnt/sda1/train.output/makeup.output/psgan/
+    LOG_PATH: /mnt/sda1/train.output/makeup.output/psgan_his/
+    SNAPSHOT_PATH: /mnt/sda1/train.output/makeup.output/psgan_his/
+    VIS_PATH: /mnt/sda1/train.output/makeup.output/psgan_his/
     SNAPSHOT_STEP: 1024
     LOG_STEP: 1000
     VIS_STEP: 2700
@@ -10,11 +10,27 @@ DATA:
     BATCH_SIZE: 1
     IMG_SIZE: 256
     PATH: /home/shengdewu/data/makeup.data/MT-Dataset
-    NUM_WORKERS: 4
+    NUM_WORKERS: 8
 
 MODEL:
-    WEIGHTS: /mnt/sda1/train.output/makeup.output/psgan/
+    WEIGHTS: /mnt/sda1/train.output/makeup.output/psgan_his/
     VGG_WEIGHTS: /mnt/sda1/workspace/open_source/PSGAN/vgg16-397923af.pth
 
+LOSS:
+    LAMBDA_HIS_LIP: 10.
+    LAMBDA_HIS_SKIN: 5.
+    LAMBDA_HIS_EYE: 5.
+
 DEVICE: cpu
+
+TRAINING:
+    G_LR: 2e-4
+    D_LR: 2e-5
+    G_STEP: 1
+    NUM_START_EPOCHS: 0
+    NUM_EPOCHS: 100
+#    NUM_EPOCHS_DECAY: 0
+    LR_DECAY_RATE: 0.1
+    LR_STEPS: [60, 80]
+
 
