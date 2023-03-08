@@ -64,6 +64,7 @@ class Solver(Track):
         self.lambda_his_skin = config.LOSS.LAMBDA_HIS_SKIN
         self.lambda_his_eye = config.LOSS.LAMBDA_HIS_EYE
         self.lambda_vgg = config.LOSS.LAMBDA_VGG
+        self.lambda_unchanged = config.LOSS.LAMBDA_UNCHANGED
 
         # Hyper-parameteres
         self.d_conv_dim = config.MODEL.D_CONV_DIM
@@ -336,8 +337,23 @@ class Solver(Track):
                     loss_rec = (g_loss_rec_A + g_loss_rec_B + g_loss_A_vgg + g_loss_B_vgg) * 0.5
                     # loss_rec = (g_loss_rec_A + g_loss_A_vgg) * 0.5
 
+                    # unchange loss
+                    un_mask_s = 1 - (mask_s[:, 0] + mask_s[:, 1] + mask_s[:, 2])
+                    un_mask_r = 1 - (mask_r[:, 0] + mask_r[:, 1] + mask_r[:, 2])
+
+                    un_image_s = image_s * un_mask_s
+                    un_fake_A = fake_A * un_mask_s
+
+                    un_image_r = image_r * un_mask_r
+                    un_fake_B = fake_B * un_mask_r
+
+                    loss_unchange_A = self.criterionL1(un_image_s, un_fake_A) * self.lambda_unchanged
+                    loss_unchange_B = self.criterionL1(un_image_r, un_fake_B) * self.lambda_unchanged
+
+                    loss_unchaged = loss_unchange_A + loss_unchange_B
+
                     # Combined loss
-                    g_loss = (g_A_loss_adv + g_B_loss_adv + loss_rec + loss_idt + g_A_loss_his + g_B_loss_his).mean()
+                    g_loss = (g_A_loss_adv + g_B_loss_adv + loss_rec + loss_idt + g_A_loss_his + g_B_loss_his + loss_unchaged).mean()
                     # g_loss = (g_A_loss_adv + loss_rec + loss_idt + g_A_loss_his).mean()
 
                     self.g_optimizer.zero_grad()
@@ -355,8 +371,8 @@ class Solver(Track):
                     self.loss['G-loss-vgg-rec'] = (g_loss_A_vgg + g_loss_B_vgg).mean().item()
                     self.loss['G-loss-img-rec'] = g_loss_rec_A.mean().item()
                     self.loss['G-loss-vgg-rec'] = g_loss_A_vgg.mean().item()
-
                     self.loss['G-A-loss-his'] = g_A_loss_his.mean().item()
+                    self.loss['G-loss-unchaged'] = loss_unchaged.mean().item()
 
                 # Print out log info
                 if self.i % self.log_step == 0:
