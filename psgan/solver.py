@@ -338,22 +338,27 @@ class Solver(Track):
                     # loss_rec = (g_loss_rec_A + g_loss_A_vgg) * 0.5
 
                     # unchange loss
-                    un_mask_s = 1 - (mask_s[:, 0] + mask_s[:, 1] + mask_s[:, 2])
-                    un_mask_r = 1 - (mask_r[:, 0] + mask_r[:, 1] + mask_r[:, 2])
+                    if self.lambda_unchanged > 0:
+                        un_mask_s = 1 - (mask_s[:, 0] + mask_s[:, 1] + mask_s[:, 2])
+                        un_mask_r = 1 - (mask_r[:, 0] + mask_r[:, 1] + mask_r[:, 2])
 
-                    un_image_s = image_s * un_mask_s
-                    un_fake_A = fake_A * un_mask_s
+                        un_image_s = image_s * un_mask_s
+                        un_fake_A = fake_A * un_mask_s
 
-                    un_image_r = image_r * un_mask_r
-                    un_fake_B = fake_B * un_mask_r
+                        un_image_r = image_r * un_mask_r
+                        un_fake_B = fake_B * un_mask_r
 
-                    loss_unchange_A = self.criterionL1(un_image_s, un_fake_A) * self.lambda_unchanged
-                    loss_unchange_B = self.criterionL1(un_image_r, un_fake_B) * self.lambda_unchanged
+                        loss_unchange_A = self.criterionL1(un_image_s, un_fake_A) * self.lambda_unchanged
+                        loss_unchange_B = self.criterionL1(un_image_r, un_fake_B) * self.lambda_unchanged
 
-                    loss_unchaged = loss_unchange_A + loss_unchange_B
+                        loss_unchaged = loss_unchange_A + loss_unchange_B
 
-                    # Combined loss
-                    g_loss = (g_A_loss_adv + g_B_loss_adv + loss_rec + loss_idt + g_A_loss_his + g_B_loss_his + loss_unchaged).mean()
+                        # Combined loss
+                        g_loss = (g_A_loss_adv + g_B_loss_adv + loss_rec + loss_idt + g_A_loss_his + g_B_loss_his + loss_unchaged).mean()
+
+                        self.loss['G-loss-unchaged'] = loss_unchaged.mean().item()
+                    else:
+                        g_loss = (g_A_loss_adv + g_B_loss_adv + loss_rec + loss_idt + g_A_loss_his + g_B_loss_his).mean()
                     # g_loss = (g_A_loss_adv + loss_rec + loss_idt + g_A_loss_his).mean()
 
                     self.g_optimizer.zero_grad()
@@ -363,7 +368,7 @@ class Solver(Track):
 
                     # Logging
                     self.loss['G-A-loss-adv'] = g_A_loss_adv.mean().item()
-                    self.loss['G-B-loss-adv'] = g_A_loss_adv.mean().item()
+                    self.loss['G-B-loss-adv'] = g_B_loss_adv.mean().item()
                     self.loss['G-loss-org'] = g_loss_rec_A.mean().item()
                     self.loss['G-loss-ref'] = g_loss_rec_B.mean().item()
                     self.loss['G-loss-idt'] = loss_idt.mean().item()
@@ -372,7 +377,6 @@ class Solver(Track):
                     self.loss['G-loss-img-rec'] = g_loss_rec_A.mean().item()
                     self.loss['G-loss-vgg-rec'] = g_loss_A_vgg.mean().item()
                     self.loss['G-A-loss-his'] = g_A_loss_his.mean().item()
-                    self.loss['G-loss-unchaged'] = loss_unchaged.mean().item()
 
                 # Print out log info
                 if self.i % self.log_step == 0:
