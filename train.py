@@ -21,7 +21,9 @@ def train_net(config):
 if __name__ == '__main__':
     args = setup_argparser().parse_args()
     config = setup_config(args)
+    print("Call with args:")
     print(config)
+    os.makedirs(config.LOG.LOG_PATH, exist_ok=True)
     with open(f'{config.LOG.LOG_PATH}/config.yaml', mode='w') as f:
         f.write(config.dump())
 
